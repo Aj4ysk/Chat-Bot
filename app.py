@@ -57,11 +57,13 @@ def initialize_groq_client() -> Groq:
         # Try to get API key from Streamlit secrets
         if "GROQ_API_KEY" in st.secrets:
             api_key = st.secrets["GROQ_API_KEY"]
-            st.sidebar.success("✅ API key found in Streamlit secrets")
+            if show_debug:
+                st.sidebar.success("✅ API key found in Streamlit secrets")
         # Try to get API key from environment variable
         elif "GROQ_API_KEY" in os.environ:
             api_key = os.environ["GROQ_API_KEY"]
-            st.sidebar.success("✅ API key found in environment variables")
+            if show_debug:
+                st.sidebar.success("✅ API key found in environment variables")
         else:
             st.error("""
             ❌ Groq API key not found. Please set it in Streamlit Cloud:
@@ -71,7 +73,7 @@ def initialize_groq_client() -> Groq:
             3. Click on 'Secrets'
             4. Add this exact format (replace with your key):
             ```toml
-            GROQ_API_KEY = "gsk_...07Hw"
+            GROQ_API_KEY = \"gsk_...07Hw\"
             ```
             
             Make sure to:
@@ -87,8 +89,9 @@ def initialize_groq_client() -> Groq:
             return None
 
         # Mask the API key for security
-        masked_key = api_key[:4] + "..." + api_key[-4:] if len(api_key) > 8 else "***"
-        st.sidebar.write(f"Using API key: {masked_key}")
+        if show_debug:
+            masked_key = api_key[:4] + "..." + api_key[-4:] if len(api_key) > 8 else "***"
+            st.sidebar.write(f"Using API key: {masked_key}")
         
         return Groq(api_key=api_key)
     except Exception as e:
