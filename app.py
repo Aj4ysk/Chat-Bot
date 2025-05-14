@@ -16,6 +16,13 @@ st.set_page_config(
     layout="wide"
 )
 
+# Debug information in sidebar
+st.sidebar.title("Debug Info")
+st.sidebar.write("Environment Check:")
+st.sidebar.write(f"Streamlit Version: {st.__version__}")
+st.sidebar.write(f"Python Version: {os.sys.version}")
+st.sidebar.write("Secrets Available:", list(st.secrets.keys()) if hasattr(st.secrets, "keys") else "No secrets")
+
 # Custom CSS for better chat interface
 st.markdown("""
 <style>
@@ -45,13 +52,45 @@ st.markdown("""
 def initialize_groq_client() -> Groq:
     """Initialize the Groq client with API key."""
     try:
-        api_key = st.secrets["GROQ_API_KEY"] if "GROQ_API_KEY" in st.secrets else os.getenv("GROQ_API_KEY")
-        if not api_key:
-            st.error("Groq API key not found. Please set it in your environment variables or Streamlit secrets.")
+        # Try to get API key from Streamlit secrets
+        if "GROQ_API_KEY" in st.secrets:
+            api_key = st.secrets["GROQ_API_KEY"]
+            st.sidebar.success("✅ API key found in Streamlit secrets")
+        # Try to get API key from environment variable
+        elif "GROQ_API_KEY" in os.environ:
+            api_key = os.environ["GROQ_API_KEY"]
+            st.sidebar.success("✅ API key found in environment variables")
+        else:
+            st.error("""
+            ❌ Groq API key not found. Please set it in Streamlit Cloud:
+
+            1. Go to your app settings (three dots ⋮ next to your app)
+            2. Click on 'Settings'
+            3. Click on 'Secrets'
+            4. Add this exact format (replace with your key):
+            ```toml
+            GROQ_API_KEY = "gsk_...07Hw"
+            ```
+            
+            Make sure to:
+            - Include the quotes
+            - No extra spaces
+            - No newlines
+            - Use your actual API key
+            """)
             return None
+
+        if not api_key or api_key.strip() == "":
+            st.error("❌ API key is empty. Please provide a valid API key.")
+            return None
+
+        # Mask the API key for security
+        masked_key = api_key[:4] + "..." + api_key[-4:] if len(api_key) > 8 else "***"
+        st.sidebar.write(f"Using API key: {masked_key}")
+        
         return Groq(api_key=api_key)
     except Exception as e:
-        st.error(f"Error initializing Groq client: {str(e)}")
+        st.error(f"❌ Error initializing Groq client: {str(e)}")
         return None
 
 def get_model_response(client: Groq, messages: List[Dict[str, str]], model: str = "llama3-8b-8192") -> str:
