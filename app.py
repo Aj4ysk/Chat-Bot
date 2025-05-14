@@ -16,12 +16,14 @@ st.set_page_config(
     layout="wide"
 )
 
-# Debug information in sidebar
-st.sidebar.title("Debug Info")
-st.sidebar.write("Environment Check:")
-st.sidebar.write(f"Streamlit Version: {st.__version__}")
-st.sidebar.write(f"Python Version: {os.sys.version}")
-st.sidebar.write("Secrets Available:", list(st.secrets.keys()) if hasattr(st.secrets, "keys") else "No secrets")
+# Add a toggle to show/hide debug info
+show_debug = st.sidebar.checkbox("Show Debug Info", value=False)
+if show_debug:
+    st.sidebar.title("Debug Info")
+    st.sidebar.write("Environment Check:")
+    st.sidebar.write(f"Streamlit Version: {st.__version__}")
+    st.sidebar.write(f"Python Version: {os.sys.version}")
+    st.sidebar.write("Secrets Available:", list(st.secrets.keys()) if hasattr(st.secrets, "keys") else "No secrets")
 
 # Custom CSS for better chat interface
 st.markdown("""
